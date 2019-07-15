@@ -41,7 +41,7 @@ LogWrite "Current block list found in $BaseFile"
 LogWrite "Succesfully imported current block list..."
 
 # Let's import the new IPs from a file
-$File = "C:\DataWhatsUp\MaliciousIPChecker\NewMaliciousIPs.csv"
+$File = "\\fileserver\Backups\NewMaliciousIPs.csv"
 $IPList = import-csv $File
 LogWrite "New IP list found in $File"
 LogWrite "Succesfully imported new IPs to be checked..."
@@ -78,8 +78,11 @@ $newips = $newips | ForEach-Object {
     }
 }
 
-# Let's send an email for funsies
-Send-MailMessage -from "sswsysadmins@ssw.com.au" -to "sswsysadmins@ssw.com.au" -Subject "SSW.Firewall - New IPs added to Blacklist Feed" -Body "We just added $counter Malicious IPs to our Blacklist. <br> <br> You can find a log file with more information at $LogFile1 <br> <br> This was done as per https://sswcom.sharepoint.com/:w:/g/SysAdmin/EY-FBWPIsolKn0_x_5XXl7YBc9KyoHalLZA6Mfk9cQlqGQ?e=vtZFJb " -SmtpServer "mail.ssw.com.au" -bodyashtml
+if ($counter -gt 0) {
+
+    # Let's send an email for funsies if the number of IPs are greater than 0
+    Send-MailMessage -from "sswsysadmins@ssw.com.au" -to "sswsysadmins@ssw.com.au" -Subject "SSW.Firewall - New IPs added to Blacklist Feed" -Body "We just added $counter Malicious IPs to our Blacklist. <br> <br> You can find a log file with more information at $LogFile1 <br> <br> This was done as per https://sswcom.sharepoint.com/:w:/g/SysAdmin/EY-FBWPIsolKn0_x_5XXl7YBc9KyoHalLZA6Mfk9cQlqGQ?e=vtZFJb " -SmtpServer "mail.ssw.com.au" -bodyashtml
+}
 
 LogWrite "New Malicious IPs added to the list: "$counter
 LogWrite "Finishing Malicious IP routine..."
