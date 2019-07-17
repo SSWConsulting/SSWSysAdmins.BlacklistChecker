@@ -1,32 +1,34 @@
-﻿# PS Script to Add Malicious IPs Automatically to Blacklist File
-# Created by Kiki Biancatti for SSW
+﻿<# SSWCheckBlacklistIP - PS Script to Add Malicious IPs Automatically to Blacklist File
+ # Created by Kiki Biancatti for SSW
+ #>
 
 Param(
 
+[Parameter(Position=0,Mandatory=$true)]
 [string] $File,
-[string] $BaseFile
+[Parameter(Position=1,Mandatory=$true)]
+[string] $BaseFile,
+[Parameter(Position=2,Mandatory=$true)]
+[string] $LogFile
 
 )
 
-# Let's create a log in flea so we can see what is happening
-$Logfile1 = "\\fileserver\Backups\SSWCheckBlacklistIP.log"
-
+# Let's create a log so we can see what is happening
 Function LogWrite
 {
    $username = $env:USERNAME
    
    $PcName = $env:computername
 
-   $Stamp = (Get-Date).toString("dd/MM/yyyy HH:mm:ss")
+   $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
    $Line = "$Stamp $PcName $Username $args"
 
-   Add-content $Logfile1 -value $Line
+   Add-content $Logfile -value $Line
    Write-Host $Line
 }
 
 LogWrite "Starting new Malicious IP routine..."
-LogWrite "This script can be found in C:\DataWhatsUp\MaliciousIPChecker in server SYDMON2016P01"
-LogWrite "Logs for this script can be found in $LogFile1"
+LogWrite "Logs for this script can be found in $LogFile"
 
 # Install the PSBlackList Checker that gives the main functionality of checking the IPs in the blacklist
 Install-Module -Name PSBlackListChecker
@@ -35,13 +37,11 @@ Install-Module -Name PSBlackListChecker
 Import-Module PSBlackListChecker
 
 # Let's import the base list of IPs already being blocked
-$BaseFile = "C:\inetpub\wwwroot\SSWBlacklistIP\basefile.txt"
 $BaseIPs = get-content $BaseFile 
 LogWrite "Current block list found in $BaseFile"
 LogWrite "Succesfully imported current block list..."
 
 # Let's import the new IPs from a file
-$File = "\\fileserver\Backups\NewMaliciousIPs.csv"
 $IPList = import-csv $File
 LogWrite "New IP list found in $File"
 LogWrite "Succesfully imported new IPs to be checked..."
@@ -81,7 +81,7 @@ $newips = $newips | ForEach-Object {
 if ($counter -gt 0) {
 
     # Let's send an email for funsies if the number of IPs are greater than 0
-    Send-MailMessage -from "sswsysadmins@ssw.com.au" -to "sswsysadmins@ssw.com.au" -Subject "SSW.Firewall - New IPs added to Blacklist Feed" -Body "We just added $counter Malicious IPs to our Blacklist. <br> <br> You can find a log file with more information at $LogFile1 <br> <br> This was done as per https://sswcom.sharepoint.com/:w:/g/SysAdmin/EY-FBWPIsolKn0_x_5XXl7YBc9KyoHalLZA6Mfk9cQlqGQ?e=vtZFJb " -SmtpServer "mail.ssw.com.au" -bodyashtml
+    Send-MailMessage -from "sswsysadmins@ssw.com.au" -to "sswsysadmins@ssw.com.au" -Subject "SSW.Firewall - New IPs added to Blacklist Feed" -Body "We just added $counter Malicious IPs to our Blacklist. <br> <br> You can find a log file with more information at $LogFile <br> <br> This was done as per https://sswcom.sharepoint.com/:w:/g/SysAdmin/EY-FBWPIsolKn0_x_5XXl7YBc9KyoHalLZA6Mfk9cQlqGQ?e=vtZFJb " -SmtpServer "mail.ssw.com.au" -bodyashtml
 }
 
 LogWrite "New Malicious IPs added to the list: "$counter
