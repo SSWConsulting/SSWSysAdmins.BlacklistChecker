@@ -89,12 +89,13 @@ $AttackedUsers = $AttackedUsers | group | Select Count, Name | ConvertTo-Html
 $bodyhtml1 =  "<div style='font-family:Calibri;'>"
 $bodyhtml1 += "</H3>"
 $bodyhtml1 += "<p>We just added $counter Malicious IPs to our Blacklist.</p>"
-$bodyhtml1 += "<p> You can review the number of IPs that got blocked from each user below: </p>"
 
 $bodyhtml2 += "<p>Tip: You can find a log file with more information at <a href=$LogFile> $LogFile </a></p>"
-$bodyhtml2 += "<p>As per <a href=https://sswcom.sharepoint.com/:w:/g/SysAdmin/EY-FBWPIsolKn0_x_5XXl7YBc9KyoHalLZA6Mfk9cQlqGQ?e=vtZFJb> https://sswcom.sharepoint.com/:w:/g/SysAdmin/EY-FBWPIsolKn0_x_5XXl7YBc9KyoHalLZA6Mfk9cQlqGQ?e=vtZFJb </a></p>"
+$bodyhtml2 += "<p>Documentation for the SSW Blacklist Checker: <br>"
+$bodyhtml2 += "Public - <a href=https://github.com/SSWConsulting/BlacklistChecker> Blacklist Checker Github </a><br>"
+$bodyhtml2 += "Internal - <a href=https://sswcom.sharepoint.com/:w:/g/SysAdmin/EY-FBWPIsolKn0_x_5XXl7YBc9KyoHalLZA6Mfk9cQlqGQ?e=vtZFJb> Blacklist Checker Sharepoint </a></p>"
+$bodyhtml2 += "<p></p>"
 $bodyhtml2 += "<p>-- Powered by SSW.BlacklistChecker<br /> Server: $env:computername </p>"
-$bodyhtml2 += "<p><a href=https://github.com/SSWConsulting/BlacklistChecker>https://github.com/SSWConsulting/BlacklistChecker</a></p>"
 
 # Let's concatenate the whole body of the email
 $body = $bodyhtml1 + $AttackedUsers + $bodyhtml2
