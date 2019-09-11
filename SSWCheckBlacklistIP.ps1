@@ -72,7 +72,11 @@ $newips = $newips | ForEach-Object {
     # If it is listed in 3 or more sites, add it to the main IP file
     if ( $IPValues.islisted.Count -ge 3 ) {
        $counter += 1
-       $AttackedUsers += $_.UserID
+       $trimUser = $_.UserID.split("\") 
+       $ad = get-aduser -identity $TrimUser[1]
+       $TrimUser[1]
+       $AttackedUsers += $_.UserID + " - (Enabled: " + $ad.Enabled + ")"
+       $AttackedUsers
        add-content -path $BaseFile -value $IPValues.IP[0] 
        LogWrite "Found in "$IPValues.islisted.Count" blacklists IP: "$IPValues.IP[0]
        LogWrite "Adding to block list IP: "$IPValues.IP[0]
