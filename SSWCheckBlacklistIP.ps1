@@ -4,18 +4,17 @@
 
 Param(
 
-[Parameter(Position=0,Mandatory=$true)]
-[string] $File,
-[Parameter(Position=1,Mandatory=$true)]
-[string] $BaseFile,
-[Parameter(Position=2,Mandatory=$true)]
-[string] $LogFile
+   [Parameter(Position = 0, Mandatory = $true)]
+   [string] $File,
+   [Parameter(Position = 1, Mandatory = $true)]
+   [string] $BaseFile,
+   [Parameter(Position = 2, Mandatory = $true)]
+   [string] $LogFile
 
 )
 
 # Let's create a log so we can see what is happening
-Function LogWrite
-{
+Function LogWrite {
    $username = $env:USERNAME
    
    $PcName = $env:computername
@@ -31,7 +30,7 @@ LogWrite "Starting new Malicious IP routine..."
 LogWrite "Logs for this script can be found in $LogFile"
 
 # Install the PSBlackList Checker that gives the main functionality of checking the IPs in the blacklist
-Install-Module -Name PSBlackListChecker
+# Install-Module -Name PSBlackListChecker
 
 # Now import the module
 Import-Module PSBlackListChecker
@@ -66,31 +65,32 @@ $AttackedUsers = @()
 
 # Let's see if the IPs are blacklisted in 80+ blacklist websites
 $newips = $newips | ForEach-Object { 
-    $IPValues = Search-BlackList -IP $_.IpAddress
-    LogWrite "Searching blacklists for IP: "$_.IpAddress
+   $IPValues = Search-BlackList -IP $_.IpAddress
+   LogWrite "Searching blacklists for IP: "$_.IpAddress
     
-    # If it is listed in 3 or more sites, add it to the main IP file
-    if ( $IPValues.islisted.Count -ge 3 ) {
-       $counter += 1
-       $trimUser = $_.UserID.split("\") 
-       $ad = get-aduser -identity $TrimUser[1]
-       $TrimUser[1]
-       $AttackedUsers += $_.UserID + " - (Enabled: " + $ad.Enabled + ")"
-       $AttackedUsers
-       add-content -path $BaseFile -value $IPValues.IP[0] 
-       LogWrite "Found in "$IPValues.islisted.Count" blacklists IP: "$IPValues.IP[0]
-       LogWrite "Adding to block list IP: "$IPValues.IP[0]
+   # If it is listed in 3 or more sites, add it to the main IP file
+   if ( $IPValues.islisted.Count -ge 3 ) {
+      $counter += 1
+      $trimUser = $_.UserID.split("\") 
+      $ad = get-aduser -identity $TrimUser[1]
+      $TrimUser[1]
+      $AttackedUsers += $_.UserID + " - (Enabled: " + $ad.Enabled + ")"
+      $AttackedUsers
+      add-content -path $BaseFile -value $IPValues.IP[0] 
+      LogWrite "Found in "$IPValues.islisted.Count" blacklists IP: "$IPValues.IP[0]
+      LogWrite "Adding to block list IP: "$IPValues.IP[0]
     
-    } else {
-       LogWrite "Not found in  blacklists IP: "$IPValues.IP[0]
-    }
+   }
+   else {
+      LogWrite "Not found in  blacklists IP: "$IPValues.IP[0]
+   }
 }
 
 # Let's properly format the array of users as HTML for the email
 $AttackedUsers = $AttackedUsers | group | Select Count, Name | ConvertTo-Html
 
 # Let's create the HTML body of the email
-$bodyhtml1 =  "<div style='font-family:Calibri;'>"
+$bodyhtml1 = "<div style='font-family:Calibri;'>"
 $bodyhtml1 += "</H3>"
 $bodyhtml1 += "<p>We just added $counter Malicious IPs to our Blacklist.</p>"
 
@@ -106,8 +106,8 @@ $body = $bodyhtml1 + $AttackedUsers + $bodyhtml2
 
 if ($counter -gt 0) {
 
-    # Let's send an email for funsies if the number of IPs are greater than 0
-    Send-MailMessage -from "sswserverevents@ssw.com.au" -to "sswsysadmins@ssw.com.au" -Subject "SSW.Firewall - New IPs added to Blacklist Feed" -Body $body -SmtpServer "ssw-com-au.mail.protection.outlook.com" -bodyashtml
+   # Let's send an email for funsies if the number of IPs are greater than 0
+   Send-MailMessage -from "sswserverevents@ssw.com.au" -to "sswsysadmins@ssw.com.au" -Subject "SSW.Firewall - New IPs added to Blacklist Feed" -Body $body -SmtpServer "ssw-com-au.mail.protection.outlook.com" -bodyashtml
 }
 
 LogWrite "New Malicious IPs added to the list: "$counter
