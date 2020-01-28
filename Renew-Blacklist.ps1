@@ -1,6 +1,11 @@
-﻿<# BlacklistIPRenewer - PS Script to Renew Blacklisted Malicious IPs
- # Created by Kiki Biancatti for SSW
- #>
+﻿<#
+.SYNOPSIS
+   Renews the current blacklist file.
+.DESCRIPTION
+   Renews the current blacklist file, makes 2 copies of it, and triggers a check of the current IPs.
+.EXAMPLE
+   Triggered by Task Scheduler only.
+#>
 
 Param(
 
@@ -14,43 +19,31 @@ Param(
 [string] $File2,
 [Parameter(Position=4,Mandatory=$true)]
 [string] $IPFile
-
 )
 
 # Let's create a log in flea so we can see what is happening
-Function LogWrite
-{
-   $username = $env:USERNAME
-   
-   $PcName = $env:computername
+Import-Module Write-Log
 
-   $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
-   $Line = "$Stamp $PcName $Username $args"
-
-   Add-content $Logfile -value $Line
-   Write-Host $Line
-}
-
-LogWrite "Starting malicious IP renewing/rechecking procedure..."
+Write-Log -File $LogFile -Message "Starting malicious IP renewing/rechecking procedure..."
 
 # Let's make one copy of the file
 Copy-Item -path $BaseFile -destination $File
-LogWrite "Copying Blacklist Feed..."
+Write-Log -File $LogFile -Message "Copying Blacklist Feed..."
 
 # Let's make a second copy for...reasons
 Copy-Item -path $BaseFile -destination $File2
-LogWrite "Copying Blacklist Feed again for added security..."
+Write-Log -File $LogFile -Message "Copying Blacklist Feed again for added security..."
 
 # Let's get the content from our base feed and add it to the current malicious IP list
 $cont = get-content $File
 add-content -path $IpFile -value $cont
-LogWrite "Adding current feed to malicious IP list..."
+Write-Log -File $LogFile -Message "Adding current feed to malicious IP list..."
 
 # Let's clear our current feed
 Clear-Content $BaseFile
-LogWrite "Clearing current blacklist feed..."
+Write-Log -File $LogFile -Message "Clearing current blacklist feed..."
 
 # Let's trigger a Blacklist Check of all the IPs, keeping the ones that are still blacklisted
-LogWrite "Triggering Blacklist IP Checker..."
+Write-Log -File $LogFile -Message "Triggering Blacklist IP Checker..."
 
 C:\DataWhatsUp\MaliciousIPChecker\LaunchSSWCheckBlacklistIP.bat
