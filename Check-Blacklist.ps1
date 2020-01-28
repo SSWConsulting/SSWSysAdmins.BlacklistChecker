@@ -1,7 +1,14 @@
-﻿<# SSWCheckBlacklistIP - PS Script to Add Malicious IPs Automatically to Blacklist File
- # Created by Kiki Biancatti for SSW
- #>
-
+﻿<#
+.SYNOPSIS
+   Gets THE IP addresses in a file and checks if they are on blacklists across the web.
+.DESCRIPTION
+   Gets THE IP addresses in a file and checks if they are on blacklists across the web. If they are, add them to the final blacklist file that will be used by the firewall.
+.EXAMPLE
+   PS C:\> Check-Blacklist -File "FileWithNewIPs" -BaseFile "BaseBlacklistFile" -Logfile "LogfileLocation"
+   Checks the newly-generated blacklist file to see if any IPs are blacklisted, if yes, adds them to the final blacklist file.
+.NOTES
+   Created by Kiki Biancatti for SSW.
+#>
 Param(
 
    [Parameter(Position = 0, Mandatory = $true)]
@@ -14,48 +21,35 @@ Param(
 )
 
 # Let's create a log so we can see what is happening
-Function LogWrite {
-   $username = $env:USERNAME
-   
-   $PcName = $env:computername
+Import-Module Write-Log
 
-   $Stamp = (Get-Date).toString("yyyy/MM/dd HH:mm:ss")
-   $Line = "$Stamp $PcName $Username $args"
+Write-Log -File $LogFile -Message "Starting new Malicious IP routine..."
+Write-Log -File $LogFile -Message "Logs for this script can be found in $LogFile"
 
-   Add-content $Logfile -value $Line
-   Write-Host $Line
-}
-
-LogWrite "Starting new Malicious IP routine..."
-LogWrite "Logs for this script can be found in $LogFile"
-
-# Install the PSBlackList Checker that gives the main functionality of checking the IPs in the blacklist
-# Install-Module -Name PSBlackListChecker
-
-# Now import the module
+# Import the PSBlacklistChecker module (https://evotec.xyz/hub/scripts/psblacklistchecker/)
 Import-Module PSBlackListChecker
 
 # Let's import the base list of IPs already being blocked
 $BaseIPs = get-content $BaseFile 
-LogWrite "Current block list found in $BaseFile"
-LogWrite "Succesfully imported current block list..."
+Write-Log -File $LogFile -Message "Current block list found in $BaseFile"
+Write-Log -File $LogFile -Message "Succesfully imported current block list..."
 
 # Let's import the new IPs from a file
 $IPList = import-csv $File
-LogWrite "New IP list found in $File"
-LogWrite "Succesfully imported new IPs to be checked..."
+Write-Log -File $LogFile -Message "New IP list found in $File"
+Write-Log -File $LogFile -Message "Succesfully imported new IPs to be checked..."
 
 # Let's remove the duplicate IPs we just imported
 $IPList = $IPList | sort IpAddress -unique
-LogWrite "Succesfully removed new malicious duplicate IPs..."
+Write-Log -File $LogFile -Message "Succesfully removed new malicious duplicate IPs..."
 
 # Let's compare it with the current IP list and get rid of the ones we already have
 $newips = $IPList | WHERE-OBJECT { $BaseIPs -notcontains $_.IpAddress }
-LogWrite "Succesfully removed IPs we already had in our block list..."
+Write-Log -File $LogFile -Message "Succesfully removed IPs we already had in our block list..."
 
 # Let's see if there are any internal ones and get rid of those
-$newips = $newips | where-object { ($_.IpAddress -NotLike "192.168.*") -and ($_.IpAddress -NotLike "10.100.*") -and ($_.IpAddress -ne "220.233.130.70") -and ($_.IpAddress -NotLike "220.233.152.16*") -and ($_.IpAddress -NotLike "220.233.152.17*") -and ($_.IpAddress -Notlike "220.233.148.2*") }
-LogWrite "Succesfully removed internal and known public IPs..."
+$newips = $newips | where-object { ($_.IpAddress -NotLike "192.168.*") -and ($_.IpAddress -NotLike "10.100.*") -and ($_.IpAddress -ne "149.167.178.152") -and ($_.IpAddress -ne "203.220.43.154") -and ($_.IpAddress -Ne "60.240.1.50") -and ($_.IpAddress -Ne "60.240.1.51") -and ($_.IpAddress -Ne "60.240.1.52") -and ($_.IpAddress -Ne "60.240.1.53") -and ($_.IpAddress -Ne "60.240.1.54") -and ($_.IpAddress -Ne "103.138.37.1") -and ($_.IpAddress -Ne "103.138.37.2") -and ($_.IpAddress -Ne "103.138.37.3") -and ($_.IpAddress -Ne "103.138.37.4") -and ($_.IpAddress -Ne "103.138.37.5") }
+Write-Log -File $LogFile -Message "Succesfully removed internal and known public IPs..."
 
 # Let's count how many IPs we added
 $counter = 0
@@ -66,7 +60,7 @@ $AttackedUsers = @()
 # Let's see if the IPs are blacklisted in 80+ blacklist websites
 $newips = $newips | ForEach-Object { 
    $IPValues = Search-BlackList -IP $_.IpAddress
-   LogWrite "Searching blacklists for IP: "$_.IpAddress
+   Write-Log -File $LogFile -Message "Searching web blacklists - IP: $($_.IpAddress)"
     
    # If it is listed in 3 or more sites, add it to the main IP file
    if ( $IPValues.islisted.Count -ge 3 ) {
@@ -77,12 +71,12 @@ $newips = $newips | ForEach-Object {
       $AttackedUsers += $_.UserID + " - (Enabled: " + $ad.Enabled + ")"
       $AttackedUsers
       add-content -path $BaseFile -value $IPValues.IP[0] 
-      LogWrite "Found in "$IPValues.islisted.Count" blacklists IP: "$IPValues.IP[0]
-      LogWrite "Adding to block list IP: "$IPValues.IP[0]
+      Write-Log -File $LogFile -Message "Found in $($IPValues.islisted.Count) different web blacklists - IP: $($IPValues.IP[0])"
+      Write-Log -File $LogFile -Message "Adding to final firewall blacklist - IP: $($IPValues.IP[0])"
     
    }
    else {
-      LogWrite "Not found in  blacklists IP: "$IPValues.IP[0]
+      Write-Log -File $LogFile -Message "Not found in enough web blacklists - IP: $($IPValues.IP[0])"
    }
 }
 
@@ -110,5 +104,5 @@ if ($counter -gt 0) {
    Send-MailMessage -from "sswserverevents@ssw.com.au" -to "sswsysadmins@ssw.com.au" -Subject "SSW.Firewall - New IPs added to Blacklist Feed" -Body $body -SmtpServer "ssw-com-au.mail.protection.outlook.com" -bodyashtml
 }
 
-LogWrite "New Malicious IPs added to the list: "$counter
-LogWrite "Finishing Malicious IP routine..."
+Write-Log -File $LogFile -Message "New Malicious IPs added to the list: $counter"
+Write-Log -File $LogFile -Message "Finishing Malicious IP routine..."
