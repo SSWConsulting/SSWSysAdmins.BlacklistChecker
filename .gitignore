@@ -1,3 +1,5 @@
 creds.txt
 key.txt
 usercreds.txt
+Config.psd1
+Check-Blacklist-old.ps1
