@@ -224,7 +224,6 @@ The sender of the email.
 
 .EXAMPLE
 Send-Email -TargetEmail $TargetEmail -OriginEmail $OriginEmail -LogFile $LogFile
-
 #>
 function Send-Email {
    [CmdletBinding()]
