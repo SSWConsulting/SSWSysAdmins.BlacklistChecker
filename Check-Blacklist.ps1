@@ -202,7 +202,7 @@ function Set-BlacklistIPAddresses {
    }
    catch {
       $RecentError = $Error[0]
-      Write-Log -File $LogFile -Message "ERROR searching web blacklists - $RecentError"
+      Write-Log -File $LogFile -Message "ERROR searching web blacklists $IPValues - $RecentError"
    }
 }
 
@@ -224,6 +224,7 @@ The sender of the email.
 
 .EXAMPLE
 Send-Email -TargetEmail $TargetEmail -OriginEmail $OriginEmail -LogFile $LogFile
+
 #>
 function Send-Email {
    [CmdletBinding()]
@@ -247,7 +248,7 @@ function Send-Email {
         
       $bodyhtml2 = @"
         <p>Tip:  We also removed our own $Script:GoodInternalCounter Internal IPs and our own $Script:GoodPublicCounter Public IPs - only external IP addresses should be blocked.<br>
-        This script took $($Script:Stopwatch.Elapsed.TotalSeconds) seconds to run.
+        This script took $($Script:Stopwatch.Elapsed.Minutes) minutes to run.
         You can find a log file with more information at <a href=$LogFile> $LogFile </a></p>
         <p>-- Powered by SSW.BlacklistChecker<br> </p>
         <p>
