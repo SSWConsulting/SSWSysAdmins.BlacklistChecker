@@ -248,7 +248,7 @@ function Send-Email {
         
       $bodyhtml2 = @"
         <p>Tip:  We also removed our own $Script:GoodInternalCounter Internal IPs and our own $Script:GoodPublicCounter Public IPs - only external IP addresses should be blocked.<br>
-        This script took $($Script:Stopwatch.Elapsed.Minutes) minutes to run.
+        This script took $($Script:Stopwatch.Elapsed.ToString('mm')) minutes and $($Script:Stopwatch.Elapsed.ToString('ss')) seconds to run.
         You can find a log file with more information at <a href=$LogFile> $LogFile </a></p>
         <p>-- Powered by SSW.BlacklistChecker<br> </p>
         <p>
