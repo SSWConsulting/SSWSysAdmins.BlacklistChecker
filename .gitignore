@@ -3,3 +3,5 @@ key.txt
 usercreds.txt
 Config.psd1
 Check-Blacklist-old.ps1
+Export-ExtranetLockout.ps1
+Update-Blacklist.ps1
